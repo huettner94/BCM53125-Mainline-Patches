@@ -12,8 +12,8 @@ diff --git a/drivers/net/phy/Kconfig b/drivers/net/phy/Kconfig
 index d1c982e..5aa7905 100644
 --- a/drivers/net/phy/Kconfig
 +++ b/drivers/net/phy/Kconfig
-@@ -224,6 +224,8 @@ config MDIO_BCM_UNIMAC
- 
+@@ -230,6 +230,8 @@ config MDIO_BCM_UNIMAC
+ 	  Starfighter 2 switches.
  endif # PHYLIB
  
 +source "drivers/net/phy/b53/Kconfig"

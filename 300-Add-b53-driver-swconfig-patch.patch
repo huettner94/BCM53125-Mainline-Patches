@@ -13,7 +13,7 @@ diff --git a/drivers/net/phy/Kconfig b/drivers/net/phy/Kconfig
 index a3c251b..d1c982e 100644
 --- a/drivers/net/phy/Kconfig
 +++ b/drivers/net/phy/Kconfig
-@@ -12,6 +12,16 @@ menuconfig PHYLIB
+@@ -12,6 +12,17 @@ menuconfig PHYLIB
  
  if PHYLIB
  
@@ -27,9 +27,10 @@ index a3c251b..d1c982e 100644
 +	bool "Switch LED trigger support"
 +	depends on (SWCONFIG && LEDS_TRIGGERS)
 +
++
  comment "MII PHY device drivers"
  
- config AT803X_PHY
+ config AQUANTIA_PHY
 diff --git a/drivers/net/phy/Makefile b/drivers/net/phy/Makefile
 index 501ea76..cb26095 100644
 --- a/drivers/net/phy/Makefile
@@ -39,9 +40,9 @@ index 501ea76..cb26095 100644
  
  obj-$(CONFIG_PHYLIB)		+= libphy.o
 +obj-$(CONFIG_SWCONFIG)		+= swconfig.o
+ obj-$(CONFIG_AQUANTIA_PHY)	+= aquantia.o
  obj-$(CONFIG_MARVELL_PHY)	+= marvell.o
  obj-$(CONFIG_DAVICOM_PHY)	+= davicom.o
- obj-$(CONFIG_CICADA_PHY)	+= cicada.o
 diff --git a/include/uapi/linux/Kbuild b/include/uapi/linux/Kbuild
 index 00b1000..485d22b 100644
 --- a/include/uapi/linux/Kbuild

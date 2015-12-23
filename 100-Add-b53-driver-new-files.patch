@@ -1988,6 +1988,7 @@ index 0000000..272360f
 +#include <linux/module.h>
 +#include <linux/platform_device.h>
 +#include <linux/platform_data/b53.h>
++#include <linux/byteorder/generic.h>
 +
 +#include "b53_priv.h"
 +
@@ -2008,7 +2009,7 @@ index 0000000..272360f
 +		return -EINVAL;
 +
 +	if (dev->pdata && dev->pdata->big_endian)
-+		*val = readw_be(regs + (page << 8) + reg);
++		*val = be16_to_cpu(readw(regs + (page << 8) + reg));
 +	else
 +		*val = readw(regs + (page << 8) + reg);
 +
@@ -2023,7 +2024,7 @@ index 0000000..272360f
 +		return -EINVAL;
 +
 +	if (dev->pdata && dev->pdata->big_endian)
-+		*val = readl_be(regs + (page << 8) + reg);
++		*val = be32_to_cpu(readl(regs + (page << 8) + reg));
 +	else
 +		*val = readl(regs + (page << 8) + reg);
 +
@@ -2038,9 +2039,9 @@ index 0000000..272360f
 +		return -EINVAL;
 +
 +	if (dev->pdata && dev->pdata->big_endian) {
-+		*val = readl_be(regs + (page << 8) + reg);
++		*val = be32_to_cpu(readl(regs + (page << 8) + reg));
 +		*val <<= 16;
-+		*val |= readw_be(regs + (page << 8) + reg + 4);
++		*val |= be16_to_cpu(readw(regs + (page << 8) + reg + 4));
 +	} else {
 +		*val |= readw(regs + (page << 8) + reg + 4);
 +		*val <<= 32;
@@ -2059,8 +2060,8 @@ index 0000000..272360f
 +		return -EINVAL;
 +
 +	if (dev->pdata && dev->pdata->big_endian) {
-+		lo = readl_be(regs + (page << 8) + reg);
-+		hi = readl_be(regs + (page << 8) + reg + 4);
++		lo = be32_to_cpu(readl(regs + (page << 8) + reg));
++		hi = be32_to_cpu(readl(regs + (page << 8) + reg + 4));
 +	} else {
 +		lo = readl(regs + (page << 8) + reg);
 +		hi = readl(regs + (page << 8) + reg + 4);
@@ -2089,7 +2090,7 @@ index 0000000..272360f
 +		return -EINVAL;
 +
 +	if (dev->pdata && dev->pdata->big_endian)
-+		writew_be(value, regs + (page << 8) + reg);
++		writew(cpu_to_be16(value), regs + (page << 8) + reg);
 +	else
 +		writew(value, regs + (page << 8) + reg);
 +
@@ -2105,7 +2106,7 @@ index 0000000..272360f
 +		return -EINVAL;
 +
 +	if (dev->pdata && dev->pdata->big_endian)
-+		writel_be(value, regs + (page << 8) + reg);
++		writel(cpu_to_be32(value), regs + (page << 8) + reg);
 +	else
 +		writel(value, regs + (page << 8) + reg);
 +
@@ -2121,8 +2122,8 @@ index 0000000..272360f
 +		return -EINVAL;
 +
 +	if (dev->pdata && dev->pdata->big_endian) {
-+		writel_be((u32)(value >> 16), regs + (page << 8) + reg);
-+		writew_be((u16)value, regs + (page << 8) + reg + 4);
++		writel(cpu_to_be32((u32)(value >> 16)), regs + (page << 8) + reg);
++		writew(cpu_to_be16((u16)value), regs + (page << 8) + reg + 4);
 +	} else {
 +		writel((u32)value, regs + (page << 8) + reg);
 +		writew((u16)(value >> 32), regs + (page << 8) + reg + 4);
@@ -2140,8 +2141,8 @@ index 0000000..272360f
 +		return -EINVAL;
 +
 +	if (dev->pdata && dev->pdata->big_endian) {
-+		writel_be((u32)(value >> 32), regs + (page << 8) + reg);
-+		writel_be((u32)value, regs + (page << 8) + reg + 4);
++		writel(cpu_to_be32((u32)(value >> 32)), regs + (page << 8) + reg);
++		writel(cpu_to_be32((u32)value), regs + (page << 8) + reg + 4);
 +	} else {
 +		writel((u32)value, regs + (page << 8) + reg);
 +		writel((u32)(value >> 32), regs + (page << 8) + reg + 4);
@@ -2425,7 +2426,7 @@ index 0000000..bc9b533
 +	return 0;
 +#endif
 +}
-+	
++
 +static inline int is5301x(struct b53_device *dev)
 +{
 +	return dev->chip_id == BCM53010_DEVICE_ID ||
@@ -3353,7 +3354,7 @@ index 0000000..a68e275
 +		  B53_SRAB_CMDSTAT_GORDYN |
 +		  op;
 +	writel(cmdstat, regs + B53_SRAB_CMDSTAT);
-+	
++
 +	/* check if operation completed */
 +	for (i = 0; i < 5; ++i) {
 +		cmdstat = readl(regs + B53_SRAB_CMDSTAT);
@@ -3446,7 +3447,7 @@ index 0000000..a68e275
 +
 +	*val = readl(regs + B53_SRAB_RD_L);
 +	*val += ((u64)readl(regs + B53_SRAB_RD_H) & 0xffff) << 32;
-+	
++
 +err:
 +	b53_srab_release_grant(dev);
 +
@@ -3639,7 +3640,7 @@ new file mode 100644
 index 0000000..b0ba90d
 --- /dev/null
 +++ b/drivers/net/phy/swconfig.c
-@@ -0,0 +1,1150 @@
+@@ -0,0 +1,1148 @@
 +/*
 + * swconfig.c: Switch configuration API
 + *
@@ -4038,7 +4039,8 @@ index 0000000..b0ba90d
 +			op->description))
 +			goto nla_put_failure;
 +
-+	return genlmsg_end(msg, hdr);
++	genlmsg_end(msg, hdr);
++	return msg->len;
 +nla_put_failure:
 +	genlmsg_cancel(msg, hdr);
 +	return -EMSGSIZE;
@@ -4470,10 +4472,7 @@ index 0000000..b0ba90d
 +		err = -EINVAL;
 +		goto error;
 +	}
-+	err = genlmsg_end(msg, hdr);
-+	if (err < 0)
-+		goto nla_put_failure;
-+
++	genlmsg_end(msg, hdr);
 +	swconfig_put_dev(dev);
 +	return genlmsg_reply(msg, info);
 +
@@ -4533,7 +4532,8 @@ index 0000000..b0ba90d
 +		nla_nest_end(msg, p);
 +	}
 +	nla_nest_end(msg, m);
-+	return genlmsg_end(msg, hdr);
++	genlmsg_end(msg, hdr);
++	return msg->len;
 +nla_put_failure:
 +	genlmsg_cancel(msg, hdr);
 +	return -EMSGSIZE;
@@ -4757,7 +4757,7 @@ index 0000000..b0ba90d
 +#endif
 +
 +	INIT_LIST_HEAD(&swdevs);
-+	
++
 +#if (LINUX_VERSION_CODE < KERNEL_VERSION(3,13,0))
 +	err = genl_register_family(&switch_fam);
 +	if (err)
@@ -4789,7 +4789,6 @@ index 0000000..b0ba90d
 +
 +module_init(swconfig_init);
 +module_exit(swconfig_exit);
-+
 diff --git a/drivers/net/phy/swconfig_leds.c b/drivers/net/phy/swconfig_leds.c
 new file mode 100644
 index 0000000..abd7bed
