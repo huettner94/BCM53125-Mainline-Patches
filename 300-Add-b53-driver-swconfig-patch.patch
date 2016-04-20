@@ -36,7 +36,7 @@ index 501ea76..cb26095 100644
 --- a/drivers/net/phy/Makefile
 +++ b/drivers/net/phy/Makefile
 @@ -3,6 +3,7 @@
- libphy-objs			:= phy.o phy_device.o mdio_bus.o
+ libphy-objs			:= phy.o phy_device.o mdio_bus.o mdio_device.o
  
  obj-$(CONFIG_PHYLIB)		+= libphy.o
 +obj-$(CONFIG_SWCONFIG)		+= swconfig.o

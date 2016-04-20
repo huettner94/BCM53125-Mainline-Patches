@@ -1531,10 +1531,10 @@ index 0000000..b82bc93
 +MODULE_LICENSE("Dual BSD/GPL");
 diff --git a/drivers/net/phy/b53/b53_mdio.c b/drivers/net/phy/b53/b53_mdio.c
 new file mode 100644
-index 0000000..3c25f0e
+index 0000000..b12ffed
 --- /dev/null
 +++ b/drivers/net/phy/b53/b53_mdio.c
-@@ -0,0 +1,425 @@
+@@ -0,0 +1,426 @@
 +/*
 + * B53 register access through MII registers
 + *
@@ -1555,6 +1555,7 @@ index 0000000..3c25f0e
 +
 +#include <linux/kernel.h>
 +#include <linux/phy.h>
++#include <linux/mdio.h>
 +#include <linux/module.h>
 +
 +#include "b53_priv.h"
@@ -1794,11 +1795,11 @@ index 0000000..3c25f0e
 +	int ret;
 +
 +	/* allow the generic phy driver to take over */
-+	if (phydev->addr != B53_PSEUDO_PHY && phydev->addr != 0)
++	if (phydev->mdio.addr != B53_PSEUDO_PHY && phydev->mdio.addr != 0)
 +		return -ENODEV;
 +
 +	dev.current_page = 0xff;
-+	dev.priv = phydev->bus;
++	dev.priv = phydev->mdio.bus;
 +	dev.ops = &b53_mdio_ops;
 +	dev.pdata = NULL;
 +	mutex_init(&dev.reg_mutex);
@@ -1822,7 +1823,7 @@ index 0000000..3c25f0e
 +	struct b53_device *dev;
 +	int ret;
 +
-+	dev = b53_switch_alloc(&phydev->dev, &b53_mdio_ops, phydev->bus);
++	dev = b53_switch_alloc(&phydev->mdio.dev, &b53_mdio_ops, phydev->mdio.bus);
 +	if (!dev)
 +		return -ENOMEM;
 +
@@ -1889,8 +1890,8 @@ index 0000000..3c25f0e
 +	.config_aneg	= b53_phy_config_aneg,
 +	.config_init	= b53_phy_config_init,
 +	.read_status	= b53_phy_read_status,
-+	.driver = {
-+		.owner = THIS_MODULE,
++	.mdiodrv = {
++		.flags = MDIO_DEVICE_FLAG_PHY,
 +	},
 +};
 +
@@ -1905,8 +1906,8 @@ index 0000000..3c25f0e
 +	.config_aneg	= b53_phy_config_aneg,
 +	.config_init	= b53_phy_config_init,
 +	.read_status	= b53_phy_read_status,
-+	.driver = {
-+		.owner = THIS_MODULE,
++	.mdiodrv = {
++		.flags = MDIO_DEVICE_FLAG_PHY,
 +	},
 +};
 +
@@ -1921,8 +1922,8 @@ index 0000000..3c25f0e
 +	.config_aneg	= b53_phy_config_aneg,
 +	.config_init	= b53_phy_config_init,
 +	.read_status	= b53_phy_read_status,
-+	.driver = {
-+		.owner = THIS_MODULE,
++	.mdiodrv = {
++		.flags = MDIO_DEVICE_FLAG_PHY,
 +	},
 +};
 +
@@ -1930,15 +1931,15 @@ index 0000000..3c25f0e
 +{
 +	int ret;
 +
-+	ret = phy_driver_register(&b53_phy_driver_id1);
++	ret = phy_driver_register(&b53_phy_driver_id1, THIS_MODULE);
 +	if (ret)
 +		return ret;
 +
-+	ret = phy_driver_register(&b53_phy_driver_id2);
++	ret = phy_driver_register(&b53_phy_driver_id2, THIS_MODULE);
 +	if (ret)
 +		goto err1;
 +
-+	ret = phy_driver_register(&b53_phy_driver_id3);
++	ret = phy_driver_register(&b53_phy_driver_id3, THIS_MODULE);
 +	if (!ret)
 +		return 0;
 +
@@ -1959,7 +1960,7 @@ index 0000000..3c25f0e
 +module_exit(b53_phy_driver_unregister);
 +
 +MODULE_DESCRIPTION("B53 MDIO access driver");
-+MODULE_LICENSE("Dual BSD/GPL");
++
 diff --git a/drivers/net/phy/b53/b53_mmap.c b/drivers/net/phy/b53/b53_mmap.c
 new file mode 100644
 index 0000000..272360f
@@ -2244,9 +2245,9 @@ index 0000000..72d1373
 +static int b53_phy_fixup(struct phy_device *dev)
 +{
 +	u32 phy_id;
-+	struct mii_bus *bus = dev->bus;
++	struct mii_bus *bus = dev->mdio.bus;
 +
-+	if (dev->addr != B53_PSEUDO_PHY)
++	if (dev->mdio.addr != B53_PSEUDO_PHY)
 +		return 0;
 +
 +	/* read the first port's id */
